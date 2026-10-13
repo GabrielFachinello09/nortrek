@@ -9,5 +9,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-header("Location: /mini-sistema/nortrek/carrinho/carrinho.php");
+header("Location: " . url('carrinho/carrinho.php'));
 exit();

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../includes/config.php';
 if(session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -6,6 +7,6 @@ if(session_status() == PHP_SESSION_NONE) {
 $_SESSION = array();
 session_destroy();
 // Redireciona para index.php
-header("Location: /mini-sistema/nortrek/index.php");
+header("Location: " . url('index.php'));
     exit();
 ?>

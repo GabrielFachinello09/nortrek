@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['nome']   = $cliente['nome'];
         $_SESSION['perfil'] = $cliente['perfil']; // Espera 'admin' ou 'cliente'
 
-        header("Location: /mini-sistema/nortrek/index.php");
+        header("Location: " . url('index.php'));
         exit();
         
     } else {
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Nortrek</title>
-    <link rel="stylesheet" href="/mini-sistema/nortrek/css/style.css">
+    <link rel="stylesheet" href="<?= url('css/style.css') ?>">
 </head>
 <body>
 
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <br>
-    <a href="/mini-sistema/nortrek/login/cadastrar.php">Ainda não possui login? Cadastre-se</a>
+    <a href="<?= url('login/cadastrar.php') ?>">Ainda não possui login? Cadastre-se</a>
 
     <?php include __DIR__ . '/../includes/footer.php'; ?>
 </body>

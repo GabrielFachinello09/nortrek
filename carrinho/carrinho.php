@@ -14,15 +14,15 @@ foreach ($itens as $item) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Carrinho - Nortrek</title>
-    <link rel="stylesheet" href="/mini-sistema/nortrek/css/style.css">
+    <link rel="stylesheet" href="<?= url('css/style.css') ?>">
 </head>
 <body>
     <h1>Meu Carrinho</h1>
 
     <header class="header-publico">
         <nav>
-            <a href="/mini-sistema/nortrek/index.php">Início</a>
-            <a href="/mini-sistema/nortrek/login/logout.php">Sair (Logout)</a>
+            <a href="<?= url('index.php') ?>">Início</a>
+            <a href="<?= url('login/logout.php') ?>">Sair (Logout)</a>
         </nav>
     </header>
 
@@ -51,7 +51,7 @@ foreach ($itens as $item) {
                         <td class="num"><?= (int) $item['quantidade'] ?></td>
                         <td class="num">R$ <?= number_format($item['preco'] * $item['quantidade'], 2, ',', '.') ?></td>
                         <td>
-                            <form action="/mini-sistema/nortrek/carrinho/remover.php" method="POST">
+                            <form action="<?= url('carrinho/remover.php') ?>" method="POST">
                                 <input type="hidden" name="produto_id" value="<?= (int) $item['produto_id'] ?>">
                                 <button type="submit" class="btn btn-danger btn-sm">Remover</button>
                             </form>

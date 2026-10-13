@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/functions.php'; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar</title>
-    <link rel="stylesheet" href="/mini-sistema/nortrek/css/style.css">
+    <link rel="stylesheet" href="<?= url('css/style.css') ?>">
 
 </head>
 <body>

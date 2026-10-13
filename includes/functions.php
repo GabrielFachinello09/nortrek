@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ .'/config.php/';
 require_once __DIR__ . '/../database/connect.php';
 
 function cadastrar_produto($conexao, $nome, $marca, $categoria, $descricao, $preco, $estoque, $avaliacao, $file_imagem) {

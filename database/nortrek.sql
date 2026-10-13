@@ -166,8 +166,8 @@ COPY public.carrinho (id, cliente_id, produto_id, quantidade, adicionado_em) FRO
 
 COPY public.clientes (id, nome, email, senha, telefone, criado_em, perfil) FROM stdin;
 2	Carlos Silva	carlos.silva@exemplo.com	$2y$12$ExemploHashSenhaCliente987654321	(19) 97777-2222	2026-10-13 09:30:00	cliente
-1	Ana Souza	ana.souza@exemplo.com	$2y$12$ExemploHashSenhaAdmin123456789	(19) 98888-1111	2026-10-13 09:00:00	admin
-3	lee young ji	leeYoungJi@leeYoungJi.com	$2y$12$iBooBZBma6zaT8qea0CBZu4/9e1zKIKRTNncB7CWhL7tjwNGEyyPO	(19) 99999-9999	2026-10-13 12:04:42.300074	admin
+1	Ana Souza	ana.souza@exemplo.com	$2y$12$ExemploHashSenhaAdmin123456789	(19) 98888-1111	2026-10-13 09:00:00	cliente
+3	lee young ji	leeYoungJi@leeYoungJi.com	$2y$12$iBooBZBma6zaT8qea0CBZu4/9e1zKIKRTNncB7CWhL7tjwNGEyyPO	(19) 99999-9999	2026-10-13 12:04:42.300074	cliente
 4	narin 	narin@narin.com	$2y$12$6gQebWRdNfUfI7NkrNuBXOKYFuiajx2h1oKrAkgoh6se9NK8fwHy6	(19) 99999-9999	2026-10-13 12:20:14.157188	cliente
 \.
 

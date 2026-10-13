@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ .'/config.php/';
 require_once __DIR__ . '/../database/connect.php';
+require_once __DIR__ . '/config.php';
 
 function cadastrar_produto($conexao, $nome, $marca, $categoria, $descricao, $preco, $estoque, $avaliacao, $file_imagem) {
     // Valida se a imagem foi enviada sem erros
@@ -32,7 +32,7 @@ function cadastrar_produto($conexao, $nome, $marca, $categoria, $descricao, $pre
             ':imagem' => $nome_imagem
         ]);
         
-        echo "<script>alert('Produto cadastrado com sucesso!'); window.location.href='/mini-sistema/nortrek/index.php';</script>";
+        echo "<script>alert('Produto cadastrado com sucesso!'); window.location.href='" . url('index.php') . "';</script>";
     } else {
         echo "<script>alert('Erro ao salvar o arquivo de imagem na pasta assets.');</script>";
     }
@@ -191,11 +191,20 @@ function cadastrar_cliente($conexao, $nome, $email, $senha, $telefone)
     $stmt = $conexao->prepare($sql);
     $stmt->bindParam(":nome", $nome);
     $stmt->bindParam(":email", $email);
-    $stmt->bindParam(":senha", $senha);
+    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+    $stmt->bindParam(":senha", $senha_hash);
     $stmt->bindParam(":telefone", $telefone);
 
-    $stmt->execute();
-    echo "Cliente cadastrado com sucesso!";
+    try {
+        $stmt->execute();
+        echo "Cliente cadastrado com sucesso!";
+    } catch (PDOException $e) {
+        if ($e->getCode() === '23505') {
+            echo "Este e-mail já está cadastrado.";
+        } else {
+            echo "Erro ao cadastrar cliente.";
+        }
+    }
 }
 
 function consulta_cliente($conexao, $email)

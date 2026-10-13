@@ -28,8 +28,8 @@ $produtos = buscar_produtos_filtrados($conexao, $busca, $categoria, $ordem);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nortrek - Equipamentos de Camping</title>
-    <link rel="stylesheet" href="/mini-sistema/nortrek/css/style.css">
-    <link rel="icon" type="image/png" href="assets/pinheiro.png">
+    <link rel="stylesheet" href="<?= url('css/style.css') ?>">
+    <link rel="icon" type="image/png" href="<?= url('assets/pinheiro.png') ?>">
 </head>
 <body>
 
@@ -42,13 +42,13 @@ elseif (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'cliente') {
     ?>
     <header class="header-publico">
         <nav>
-            <a href="/mini-sistema/nortrek/index.php">Início</a> | <a href="/mini-sistema/nortrek/sobre/sobre.php">Sobre</a>
+            <a href="<?= url('index.php') ?>">Início</a> | <a href="<?= url('sobre/sobre.php') ?>">Sobre</a>
             
 
-            <a href="/mini-sistema/nortrek/carrinho/carrinho.php">
+            <a href="<?= url('carrinho/carrinho.php') ?>">
                 🛒 Carrinho (<?= contar_itens_carrinho($conexao, (int) $_SESSION['id']) ?>)
             </a> |
-            <a href="/mini-sistema/nortrek/login/logout.php">Sair (Logout)</a>
+            <a href="<?= url('login/logout.php') ?>">Sair (Logout)</a>
         </nav>
     </header>
     <?php
@@ -57,9 +57,9 @@ else {
     ?>
     <header class="header-publico">
         <nav>
-            <a href="/mini-sistema/nortrek/index.php">Início</a> | <a href="/mini-sistema/nortrek/sobre/sobre.php">Sobre </a>
-            <a href="/mini-sistema/nortrek/login/login.php">Login / Entrar</a>
-            <a href="/mini-sistema/nortrek/login/cadastrar.php">Cadastrar Cliente</a>
+            <a href="<?= url('index.php') ?>">Início</a> | <a href="<?= url('sobre/sobre.php') ?>">Sobre </a>
+            <a href="<?= url('login/login.php') ?>">Login / Entrar</a>
+            <a href="<?= url('login/cadastrar.php') ?>">Cadastrar Cliente</a>
         </nav>
     </header>
     <?php
@@ -74,7 +74,7 @@ else {
 
 <hr>
    <section class="painel-filtros">
-    <form action="/mini-sistema/nortrek/index.php" method="GET" class="form-filtros">
+    <form action="<?= url('index.php') ?>" method="GET" class="form-filtros">
         
         <input type="text" name="busca" placeholder="Buscar equipamento..." value="<?= htmlspecialchars($busca) ?>">
 
@@ -102,7 +102,7 @@ else {
         <button type="submit">Filtrar</button>
         
         <?php if (!empty($busca) || !empty($categoria) || !empty($ordem)): ?>
-            <a href="/mini-sistema/nortrek/index.php" class="btn-limpar">Limpar Filtros</a>
+            <a href="<?= url('index.php') ?>" class="btn-limpar">Limpar Filtros</a>
         <?php endif; ?>
     </form>
 </section>
@@ -125,7 +125,7 @@ else {
                             $nome_imagem = !empty($produto['imagem']) ? $produto['imagem'] : 'sem-foto.jpg';
                             ?>
                             
-                            <img src="/mini-sistema/nortrek/assets/<?= htmlspecialchars($nome_imagem) ?>" 
+                            <img src="<?= url('assets/') ?><?= htmlspecialchars($nome_imagem) ?>" 
                                  alt="<?= htmlspecialchars($produto['nome']) ?>" 
                                  class="imagem-produto">
                         </div>
@@ -144,7 +144,7 @@ else {
                         
                         <?php if (($_SESSION['perfil'] ?? '') === 'cliente'): ?>
                             <div class="acoes-produto">
-                                <form action="/mini-sistema/nortrek/carrinho/adicionar.php" method="POST">
+                                <form action="<?= url('carrinho/adicionar.php') ?>" method="POST">
                                     <input type="hidden" name="produto_id" value="<?= (int) $produto['id'] ?>">
                                     <button type="submit" class="btn btn-primary"
                                             <?= $produto['estoque'] < 1 ? 'disabled' : '' ?>>
@@ -154,7 +154,7 @@ else {
                             </div>
                         <?php elseif (!isset($_SESSION['perfil'])): ?>
                             <div class="acoes-produto">
-                                <a class="btn btn-outline" href="/mini-sistema/nortrek/login/login.php">Entre para comprar</a>
+                                <a class="btn btn-outline" href="<?= url('login/login.php') ?>">Entre para comprar</a>
                             </div>
                         <?php endif; ?>
 

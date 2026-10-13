@@ -1,11 +1,11 @@
-
-<?php 
+<?php
+require_once __DIR__ . '/../includes/config.php';
 if(session_status() == PHP_SESSION_NONE){
     session_start();
 }
 
 if(!isset($_SESSION['id'])){
-    header("Location: /mini-sistema/nortrek/login/login.php");
+    header("Location: " . url('login/login.php'));
     exit();
 }
 ?>

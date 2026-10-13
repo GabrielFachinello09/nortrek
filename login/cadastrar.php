@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro Usuário</title>
-    <link rel="stylesheet" href="/mini-sistema/nortrek/css/style.css">
+    <link rel="stylesheet" href="<?= url('css/style.css') ?>">
 </head>
 <body>
         <h1>Cadastro de Clientes</h1>
@@ -30,7 +30,7 @@
             <input type="submit" value="Fazer Cadastro">
         </form>
         <br>
-        <a href="/mini-sistema/nortrek/login/login.php">Fazer Login</a>
+        <a href="<?= url('login/login.php') ?>">Fazer Login</a>
     
     <?php
         if($_SERVER['REQUEST_METHOD']=="POST") {

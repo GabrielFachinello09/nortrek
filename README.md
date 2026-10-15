@@ -414,6 +414,7 @@ pg_dump -U nortrek -h localhost -d nortrek > ~/dumps/nortrek_antes_restauracao_$
   - Os arquivos referenciados em `produtos.imagem`, além de `sem-foto.jpg`, `logo-nortrek.png` e `pinheiro.png`, devem existir em `assets/`.
 - **Resultado esperado:** imagens carregam e o upload funciona.
 - **Possíveis erros:** "Erro ao salvar o arquivo de imagem na pasta assets."; imagens quebradas.
+- **Solução:** sudo chown -R www-data:www-data /var/www/html/mini-sistema/nortrek/assets
 - **Validação:** cadastrar um produto de teste com imagem e abrir a vitrine.
 
 ### Etapa 12 — Iniciar o Apache

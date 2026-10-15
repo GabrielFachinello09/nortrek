@@ -279,7 +279,8 @@ cd nortrek
  
 Para ver as tabelas contidas no dump:
  
-```bagrep -n "CREATE TABLE" database/nortrek.sql
+```bash
+grep -n "CREATE TABLE" database/nortrek.sql
 ```
  
 ## 3. Entrar no PostgreSQL e criar usuário e banco

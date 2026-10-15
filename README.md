@@ -334,16 +334,6 @@ Se o banco já existir com dados, gere um backup antes de restaurar:
 pg_dump -U nortrek -h localhost -d nortrek > ~/dumps/nortrek_antes_restauracao_$(date +%F_%H%M).sql
 ```
 
-### Etapa 6 — Papel `escola`
-
-- **Objetivo:** evitar erros `role "escola" does not exist`, pois o dump contém `ALTER ... OWNER TO escola`.
-- **Comando (opcional):**
-  ```bash
-  sudo -u postgres psql -c "CREATE ROLE escola;"
-  ```
-- **Resultado esperado:** `CREATE ROLE`.
-- **Validação:** após a Etapa 7, o `psql` não exibe erros de papel.
-
 ### Etapa 7 — Restaurar o dump
 
 - **Objetivo:** carregar o dump no banco `nortrek`.
@@ -358,7 +348,6 @@ pg_dump -U nortrek -h localhost -d nortrek > ~/dumps/nortrek_antes_restauracao_$
   ```
 - **Arquivo envolvido:** `database/nortrek.sql`.
 - **Resultado esperado:** sequência de `SET`, `CREATE TABLE`, `COPY`, `setval` e `ALTER TABLE`, sem `ERROR`.
-- **Possíveis erros:** autenticação, `\restrict` não reconhecido, papel `escola` inexistente.
 - **Validação:**
   ```bash
   psql -U nortrek -h localhost -d nortrek -c "\dt"
@@ -464,10 +453,7 @@ flowchart TD
     H -- Sim --> H2[Backup do estado atual]
     H1 --> I
     H2 --> I
-    I{Dump usa owner escola?}
-    I -- Sim --> I1[Criar papel escola]
-    I -- Não --> J
-    I1 --> J[psql -U nortrek -d nortrek -f database/nortrek.sql]
+    I --> J[psql -U nortrek -d nortrek -f database/nortrek.sql]
     J --> K{Erros na restauração?}
     K -- Sim --> K1[Analisar saída do psql] --> J
     K -- Não --> L{Tabelas da aplicação existem?}
@@ -486,6 +472,8 @@ flowchart TD
     T -- Sim --> U[Registrar conclusão]
     U --> V([Fim])
 ```
+---
+
 
 ---
 
@@ -501,7 +489,7 @@ flowchart TD
 | Git | Para clonar o projeto |
 | Diretório | `/var/www/html/mini-sistema/nortrek` |
 | Variáveis de ambiente | Nenhuma; credenciais em `database/connect.php` |
-| Papéis do banco | `nortrek` (dono do banco); `escola` (opcional, owner no dump) |
+| Papéis do banco | `nortrek` (dono do banco);|
 | Serviços | `postgresql` ativo na restauração; `apache2` ativo na validação |
 | Permissões | `sudo` para instalar e clonar; `assets/` gravável pelo Apache |
 | Rede | Porta 5432 entre aplicação e banco |

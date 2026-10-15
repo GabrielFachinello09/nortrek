@@ -10,11 +10,10 @@
 6. [Dependências e pré-requisitos](#6-dependências-e-pré-requisitos)
 7. [Configuração](#7-configuração)
 8. [Validação pós-restauração](#8-validação-pós-restauração)
-9. [Tratamento de erros](#9-tratamento-de-erros)
-10. [Arquivos relacionados à restauração](#10-arquivos-relacionados-à-restauração)
-11. [Segurança](#11-segurança)
-12. [Rastreabilidade e evidências](#12-rastreabilidade-e-evidências)
-13. [Oportunidades de melhoria](#13-oportunidades-de-melhoria)
+9. [Arquivos relacionados à restauração](#10-arquivos-relacionados-à-restauração)
+10. [Segurança](#11-segurança)
+11. [Rastreabilidade e evidências](#12-rastreabilidade-e-evidências)
+
 
 ---
 
@@ -580,27 +579,6 @@ DB_PASSWORD=<senha>
 
 ---
 
-## 9. Tratamento de erros
-
-| Erro | Causa provável | Como identificar | Correção | Validação |
-|---|---|---|---|---|
-| `relation "produtos" does not exist` (ou `clientes`, `carrinho`) | Tabelas da aplicação não criadas | Erro SQL na página; `\dt` | Executar a Etapa 8 | `\dt` lista as tabelas |
-| `Erro: SQLSTATE[08006]` / `connection refused` | Host ou credenciais incorretos em `connect.php`; PostgreSQL parado | Mensagem exibida por `connect.php` | Corrigir `connect.php`; `systemctl start postgresql` | Página exibe "Conexão com Postgres realizada!" |
-| `password authentication failed` | Senha diferente entre o banco e `connect.php` | Mensagem do PDO ou `psql` | `ALTER USER nortrek PASSWORD '<senha>'` ou ajustar `connect.php` | Reconectar |
-| `Peer authentication failed` | `psql` local sem `-h localhost` | Mensagem do `psql` | Usar `-h localhost` | Restauração executa |
-| `role "escola" does not exist` | `OWNER TO escola` no dump | `ERROR` nas linhas `ALTER` | Criar o papel `escola` | Reexecutar sem erros |
-| `invalid command \restrict` | `psql` mais antigo que o `pg_dump` que gerou o dump | Erro no início da restauração | Usar `psql` compatível | Restauração completa |
-| `relation "..." already exists` | Restauração repetida no mesmo banco | Erros `already exists` | Restaurar em banco novo | Sem erros |
-| `Call to undefined function str_starts_with()` | PHP anterior à 8.0 | Erro ao atualizar produto com imagem | Atualizar PHP para 8.0 ou superior | `php -v` |
-| `headers already sent` | Saída (`echo`) de `connect.php` antes de `header()` | Aviso no login ou carrinho | Remover o `echo` de `connect.php` ou ativar `output_buffering` | Redirecionamento funciona |
-| "Erro ao salvar o arquivo de imagem na pasta assets." | `assets/` sem permissão de escrita | Alerta ao cadastrar | Ajustar dono/permissão para o usuário do Apache | Novo cadastro funciona |
-| Imagens quebradas | Pasta `assets/` sem as imagens | `<img>` sem carregar | Restaurar os arquivos em `assets/` | Vitrine exibe imagens |
-| CSS e links quebrados | Projeto fora de `/mini-sistema/nortrek` | 404 em `css/style.css` | Servir sob `/mini-sistema/nortrek` | Estilo carregado |
-| Telas de `app/` redirecionam para a vitrine | Usuário sem `perfil = 'admin'` | Redirecionamento de `verifica_admin.php` | Etapa 10 | Acesso liberado |
-| Aviso em `consultar_produto` | ID inexistente | Aviso na tela | Informar ID existente | Dados exibidos |
-
----
-
 ## 10. Arquivos relacionados à restauração
 
 | Arquivo/Diretório | Função | Relação com restauração |
@@ -664,24 +642,3 @@ DB_PASSWORD=<senha>
 | Carrinho | Código | `adicionar_ao_carrinho()` |
 | URLs `/mini-sistema/nortrek/` | Código | `index.php`, `login/*.php`, `includes/header.php` |
 | Requisitos originais | Documentação | Versão anterior do `README.md` (SRS) |
-
----
-
-## 13. Oportunidades de melhoria
-
-Sugestões para avaliação futura:
-
-| Área | Sugestão |
-|---|---|
-| Automatização | Script `restore.sh` que execute as etapas de restauração |
-| Backup | Rotina agendada (`cron` ou `systemd timer`) com `pg_dump` e retenção |
-| Backup prévio | Dump automático do estado atual antes de restaurar |
-| Dump | Gerar `database/nortrek.sql` contendo `produtos`, `clientes` e `carrinho`, com `--no-owner --no-privileges` |
-| Validação | Script SQL de verificação pós-restauração |
-| Logs | Registro de execução, data, origem do dump e resultado |
-| Rollback | Restaurar em banco temporário e trocar após validar |
-| Arquivos | Incluir `assets/` no backup |
-| Configuração | Variáveis de ambiente fora do Git; suporte a porta; remover o `echo` de `connect.php` |
-| Documentação | Plano de recuperação de desastre com RPO/RTO |
-| Versionamento | Migrações versionadas do esquema (`database/migrations/`) |
-| Segurança | `password_hash()`, escape de saídas, validação de upload no cadastro, CSRF, `session_regenerate_id()` |

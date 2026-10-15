@@ -248,193 +248,123 @@ flowchart LR
 
 ---
 
-## 4. Processo de restauração do banco de dados
-
-O procedimento segue o cenário de servidor Ubuntu/Apache descrito em `Processo do DUMP.txt`, com o projeto em `/var/www/html/mini-sistema/nortrek`.
-
-### Etapa 1 — Instalar dependências do sistema
-
-- **Objetivo:** instalar Git, Apache, PHP com driver PostgreSQL e PostgreSQL.
-- **Pré-requisitos:** Linux com `apt`, usuário com `sudo`, acesso à internet.
-- **Comando:**
-  ```bash
-  sudo apt update && sudo apt install git apache2 php php-pgsql postgresql postgresql-contrib -y
-  ```
-- **Resultado esperado:** pacotes instalados sem erro.
-- **Possíveis erros:** repositório apt indisponível; PHP inferior a 8.0.
-- **Validação:**
-  ```bash
-  php -v
-  php -m | grep -i pgsql
-  psql --version
-  ```
-
-### Etapa 2 — Obter o código do projeto
-
-- **Objetivo:** colocar o projeto no diretório web com o nome `nortrek`.
-- **Pré-requisitos:** Etapa 1.
-- **Comando:**
-  ```bash
-  sudo mkdir -p /var/www/html/mini-sistema
-  cd /var/www/html/mini-sistema
-  sudo git clone https://github.com/GabrielFachinello09/Nortrek.git nortrek
-  cd nortrek
-  ```
-- **Resultado esperado:** existe `database/nortrek.sql` dentro do projeto.
-- **Possíveis erros:** diretório já existente; repositório inacessível.
-- **Validação:** `ls database`.
-
-### Etapa 3 — Localizar e conferir o arquivo de backup
-
-- **Objetivo:** confirmar que o dump existe e identificar seu conteúdo.
-- **Pré-requisitos:** Etapa 2.
-- **Comando:**
-  ```bash
-  ls -lh database/nortrek.sql
-  head -n 30 database/nortrek.sql
-  grep -n "CREATE TABLE" database/nortrek.sql
-  ```
-- **Arquivo envolvido:** `database/nortrek.sql` (SQL puro com `COPY ... FROM stdin`; restaurado com `psql`, não com `pg_restore`).
-- **Resultado esperado:** lista das tabelas contidas no dump.
-- **Possíveis erros:** arquivo ausente ou vazio.
-- **Validação:** conferir se `produtos`, `clientes` e `carrinho` aparecem; caso contrário, executar a Etapa 8.
-
-### Etapa 4 — Iniciar o PostgreSQL
-
-- **Objetivo:** servidor de banco em execução.
-- **Comando:**
-  ```bash
-  sudo systemctl start postgresql
-  sudo systemctl status postgresql
-  ```
-- **Resultado esperado:** serviço `active`.
-- **Possíveis erros:** serviço não inicia; porta 5432 ocupada.
-- **Validação:** `sudo -u postgres psql -c "SELECT version();"`.
-
-### Etapa 5 — Criar usuário e banco
-
-- **Objetivo:** criar o papel `nortrek` e o banco `nortrek`.
-- **Pré-requisitos:** Etapa 4; senha escolhida.
-- **Comando:**
-  ```bash
-  sudo -u postgres psql
-  ```
-  ```sql
-  CREATE USER nortrek WITH PASSWORD '<senha>';
-  CREATE DATABASE nortrek OWNER nortrek;
-  GRANT ALL PRIVILEGES ON DATABASE nortrek TO nortrek;
-  \q
-  ```
-- **Resultado esperado:** `CREATE ROLE`, `CREATE DATABASE`, `GRANT`.
-- **Possíveis erros:** `role "nortrek" already exists`; `database "nortrek" already exists`.
-- **Validação:** `sudo -u postgres psql -c "\l nortrek"`.
-
-Se o banco já existir com dados, gere um backup antes de restaurar:
+# Restaurar o dump do Nortrek: passo a passo
+ 
+Substitua `<senha>`, `<servidor>` e `<email_do_admin>` pelos seus valores.
+ 
+**Pré-requisitos:** Linux com `apt`, usuário com `sudo` e acesso à internet.
+ 
+## 1. Instalar e iniciar os serviços
+ 
 ```bash
-pg_dump -U nortrek -h localhost -d nortrek > ~/dumps/nortrek_antes_restauracao_$(date +%F_%H%M).sql
+sudo apt update && sudo apt install git nginx php-fpm php-pgsql postgresql postgresql-contrib -y
+sudo systemctl start postgresql nginx php*-fpm
 ```
+ 
+**Conferir:** `php -v` (precisa ser 8.0 ou superior), `php -m | grep -i pgsql` e `sudo systemctl status postgresql` (deve mostrar *active*).
+ 
+> O Nginx não executa PHP sozinho: ele usa o `php-fpm`, por isso o pacote `php` foi trocado por `php-fpm`. Se o Apache estiver instalado, pare-o (`sudo systemctl stop apache2`) para liberar a porta 80.
+ 
+## 2. Baixar o projeto
+ 
+```bash
+sudo mkdir -p /var/www/html/mini-sistema
+cd /var/www/html/mini-sistema
+sudo git clone https://github.com/GabrielFachinello09/nortrek.git nortrek
+cd nortrek
+```
+ 
+**Conferir:** `ls -lh database/nortrek.sql` deve mostrar o arquivo com tamanho maior que zero.
+ 
+Para ver as tabelas contidas no dump:
+ 
+```bagrep -n "CREATE TABLE" database/nortrek.sql
+```
+ 
+## 3. Entrar no PostgreSQL e criar usuário e banco
+ 
+Entre no terminal do PostgreSQL:
+ 
+```bash
+sudo -u postgres psql
+```
+ 
+Com o prompt `postgres=#` aberto, execute um comando por vez:
+ 
+```sql
+CREATE USER nortrek WITH PASSWORD '<senha>';
+CREATE DATABASE nortrek OWNER nortrek;
+GRANT ALL PRIVILEGES ON DATABASE nortrek TO nortrek;
+\q
+```
+ 
+**Resultado esperado:** `CREATE ROLE`, `CREATE DATABASE` e `GRANT`. O `\q` sai do PostgreSQL.
+ 
+Se aparecer `already exists`, o usuário ou o banco já existe e você pode seguir para o próximo passo.
+ 
+## 4. Restaurar o dump
+ 
+Estando na pasta `nortrek`, execute:
+ 
+```bash
+psql -U nortrek -h localhost -d nortrek -f database/nortrek.sql
+```
+ 
+O `-h localhost` evita o erro de autenticação *peer*. O dump é SQL puro, então use `psql`, não `pg_restore`.
+ 
+**Conferir:** a saída deve ter `SET`, `CREATE TABLE`, `COPY` etc., sem nenhum `ERROR`. Depois rode:
+ 
+```bash
+psql -U nortrek -h localhost -d nortrek -c "\dt"
+```
+ 
+As tabelas `produtos`, `clientes` e `carrinho` devem aparecer, já com os dados que estavam no dump. Não é preciso criar nenhuma tabela manualmente.
+ 
+## 5. Configurar a conexão
+ 
+```bash
+nano database/connect.php
+```
+ 
+```php
+$host   = "<host>";      // normalmente localhost
+$dbname = "nortrek";
+$user   = "nortrek";
+$pass   = "<senha>";
+```
+ 
+## 6. Permissões das imagens
+ 
+```bash
+sudo chown -R www-data:www-data /var/www/html/mini-sistema/nortrek/assets
+```
+ 
+A pasta `assets/` precisa conter `sem-foto.jpg`, `logo-nortrek.png`, `pinheiro.png` e as imagens citadas em `produtos.imagem`.
+ 
+## 7. Validar a aplicação
 
-### Etapa 7 — Restaurar o dump
-
-- **Objetivo:** carregar o dump no banco `nortrek`.
-- **Pré-requisitos:** Etapas 3 a 5; estar na raiz do projeto.
-- **Comando:**
-  ```bash
-  psql -U nortrek -d nortrek -f database/nortrek.sql
-  ```
-  Em caso de falha de autenticação *peer*, usar TCP:
-  ```bash
-  psql -U nortrek -h localhost -d nortrek -f database/nortrek.sql
-  ```
-- **Arquivo envolvido:** `database/nortrek.sql`.
-- **Resultado esperado:** sequência de `SET`, `CREATE TABLE`, `COPY`, `setval` e `ALTER TABLE`, sem `ERROR`.
-- **Validação:**
-  ```bash
-  psql -U nortrek -h localhost -d nortrek -c "\dt"
-  ```
-
-### Etapa 8 — Criar as tabelas da aplicação
-
-- **Objetivo:** garantir as tabelas `produtos`, `clientes` (com `perfil`) e `carrinho`, usadas por `includes/functions.php`.
-- **Pré-requisitos:** Etapa 7. Executar somente se essas tabelas não existirem.
-- **Ordem:** `produtos` → `clientes` → `ALTER TABLE clientes` → `carrinho`.
-- **Arquivos envolvidos:**
-  - `database/-- Tabela de produtos da Nortrek.pgsql` (`produtos`, `clientes`)
-  - `database/-- ALTER TABLE clientes.pgsql` (coluna `perfil`)
-  - `database/CREATE TABLE carrinho (.pgsql`
-- **Comando:** descomentar os `CREATE TABLE` e o `ALTER TABLE` e executar:
-  ```bash
-  psql -U nortrek -h localhost -d nortrek
-  ```
-  ```sql
-  -- 1) CREATE TABLE produtos (...)
-  -- 2) CREATE TABLE clientes (...)
-  -- 3) ALTER TABLE clientes ADD COLUMN perfil VARCHAR(20) NOT NULL DEFAULT 'cliente';
-  -- 4) CREATE TABLE carrinho (...)
-  ```
-- **Resultado esperado:** `CREATE TABLE` (3×) e `ALTER TABLE`.
-- **Possíveis erros:** `relation already exists`; `relation "clientes" does not exist` ao criar `carrinho` fora de ordem.
-- **Validação:** `\d produtos`, `\d clientes`, `\d carrinho`.
-
-### Etapa 9 — Ajustar as credenciais de conexão
-
-- **Objetivo:** apontar a aplicação para o banco restaurado.
-- **Comando:**
-  ```bash
-  nano database/connect.php
-  ```
-  ```php
-  $host   = "<host>";
-  $dbname = "nortrek";
-  $user   = "nortrek";
-  $pass   = "<senha>";
-  ```
-- **Arquivo envolvido:** `database/connect.php` (usa a porta padrão 5432).
-- **Resultado esperado:** as páginas exibem `Conexão com Postgres realizada!`.
-- **Possíveis erros:** `Erro: SQLSTATE[...]` (host, usuário ou senha incorretos).
-- **Validação:** abrir `http://<servidor>/mini-sistema/nortrek/index.php`.
-
-### Etapa 10 — Definir um administrador
-
-- **Objetivo:** ter ao menos um usuário com `perfil = 'admin'`.
-- **Pré-requisitos:** Etapa 8 e um cliente cadastrado em `login/cadastrar.php`.
-- **Comando:**
-  ```sql
-  UPDATE clientes SET perfil = 'admin' WHERE email = '<email_do_admin>';
-  ```
-- **Arquivo envolvido:** `database/-- ALTER TABLE clientes.pgsql`.
-- **Resultado esperado:** `UPDATE 1`.
-- **Validação:** `SELECT id, email, perfil FROM clientes;` e login com acesso às telas de `app/`.
-
-### Etapa 11 — Imagens e permissões de `assets/`
-
-- **Objetivo:** permitir upload e exibição das imagens.
-- **Ação:**
-  - `assets/` deve ser gravável pelo usuário do Apache.
-  - Os arquivos referenciados em `produtos.imagem`, além de `sem-foto.jpg`, `logo-nortrek.png` e `pinheiro.png`, devem existir em `assets/`.
-- **Resultado esperado:** imagens carregam e o upload funciona.
-- **Possíveis erros:** "Erro ao salvar o arquivo de imagem na pasta assets."; imagens quebradas.
-- **Solução:** sudo chown -R www-data:www-data /var/www/html/mini-sistema/nortrek/assets
-- **Validação:** cadastrar um produto de teste com imagem e abrir a vitrine.
-
-### Etapa 12 — Iniciar o Apache
-
-- **Comando:**
-  ```bash
-  sudo systemctl start apache2
-  sudo systemctl status apache2
-  ```
-- **Resultado esperado:** `active (running)`.
-- **Validação:** `curl -I http://localhost/mini-sistema/nortrek/index.php` retorna `HTTP 200`.
-
-### Etapa 13 — Validar banco e aplicação
-
-Executar o checklist da [seção 8](#8-validação-pós-restauração).
-
-### Etapa 14 — Registrar a conclusão
-
-Registrar data, origem do dump, versão do PostgreSQL e resultado das validações.
-
+1. Abra `http://<servidor>/mini-sistema/nortrek/index.php`. Deve aparecer *Conexão com Postgres realizada!*.
+2. Confira os dados restaurados:
+```bash
+   psql -U nortrek -h localhost -d nortrek -c "SELECT id, email, perfil FROM clientes;"
+```
+ 
+4. Faça login com um usuário de perfil `admin` e confirme o acesso às telas de `app/`.
+   Abra a vitrine e confirme que os produtos e as imagens aparecem.
+ 
+**Só se o dump não tiver nenhum admin:** cadastre um usuário em `login/cadastrar.php` e promova-o no banco (`psql -U nortrek -h localhost -d nortrek`):
+ 
+```sql
+UPDATE clientes SET perfil = 'admin' WHERE email = '<email_do_admin>';
+```
+ 
+O resultado esperado é `UPDATE 1`.
+ 
+## Registro final
+ 
+Anote a data, a origem do dump, a versão do PostgreSQL (`psql --version`) e o resultado das validações.
+ 
+ 
 ---
 
 ## 5. Fluxograma da restauração
